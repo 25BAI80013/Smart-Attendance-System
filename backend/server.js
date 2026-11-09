@@ -35,26 +35,43 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:5173",
   "https://smart-attendance-system-wheat-zeta.vercel.app",
-  ...(process.env.CLIENT_URL || "")
-    .split(",")
-    .map(origin => origin.trim().replace(/\/$/, ""))
-    .filter(Boolean)
+  "https://smart-attendance-system.vercel.app"
 ];
+
+const isAllowedVercelPreview = (origin) => {
+  if (!origin) return false;
+
+  try {
+    const hostname = new URL(origin).hostname;
+
+    return (
+      hostname.endsWith(".vercel.app") &&
+      /^smart-attendance-system-[a-z0-9-]+-sagars-projects-1d072755\.vercel\.app$/i.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+};
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      isAllowedVercelPreview(origin)
+    ) {
       return callback(null, true);
     }
 
     console.log("Blocked CORS origin:", origin);
-    return callback(new Error("Not allowed by CORS"));
+    return callback(new Error("Origin not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 204
 }));
 
+// MIDDLEWARE
 app.use(helmet());
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan("dev"));
@@ -202,9 +219,28 @@ app.listen(PORT, () => {
   console.log("------------------------------------");
   console.log("Smart Attendance Management System");
   console.log("------------------------------------");
+
   console.log(`Server running on port ${PORT}`);
-  console.log("Allowed frontend origins:", allowedOrigins);
+  console.log("CORS configuration loaded");
+
   console.log(`Health: http://localhost:${PORT}/api/health`);
   console.log(`Database: http://localhost:${PORT}/api/db-check`);
+
+  console.log(`Students: http://localhost:${PORT}/api/students`);
+  console.log(`Departments: http://localhost:${PORT}/api/departments`);
+  console.log(`Classes: http://localhost:${PORT}/api/classes`);
+  console.log(`Teachers: http://localhost:${PORT}/api/teachers`);
+  console.log(`Subjects: http://localhost:${PORT}/api/subjects`);
+  console.log(`Assignments: http://localhost:${PORT}/api/assignments`);
+  console.log(`Users: http://localhost:${PORT}/api/users`);
+
+  console.log(`Attendance: http://localhost:${PORT}/api/attendance`);
+  console.log(`Settings: http://localhost:${PORT}/api/settings`);
+
+  console.log(`Student portal: http://localhost:${PORT}/api/student-portal`);
+  console.log(`Reports: http://localhost:${PORT}/api/reports`);
+  console.log(`Notifications: http://localhost:${PORT}/api/notifications`);
+  console.log(`Audit logs: http://localhost:${PORT}/api/audit`);
+
   console.log("------------------------------------");
 });
